@@ -4,7 +4,7 @@ const cors=require('cors')
 const jwt = require("jsonwebtoken");
 const app= express();
 const port= process.env.PORT || 3000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nu3ic.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 app.use(cors())
@@ -78,6 +78,62 @@ async function run() {
       console.log(newtaskData)
     })
     
+// find task
+
+app.get('/tasks', verifyToken, async (req, res) => {
+  try {
+    const query = req.query;  // ✅ Get query params properly
+    console.log("Query received:", query);
+
+    const tasks = await tasksCollection.find(query).toArray();  
+    res.send(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
+//find a task by id
+
+app.get('/task/:id',async(req,res)=>{
+  const {id}= req.params;
+  const query = { _id: new ObjectId(id) };
+  const result= await tasksCollection.findOne(query);
+  res.send(result)
+  console.log(id)
+})
+//delete
+app.delete('/task/:id',async(req,res)=>{
+  const {id}= req.params;
+  const query = { _id: new ObjectId(id) };
+  const result= await tasksCollection.deleteOne(query);
+  res.send(result)
+})
+app.patch('/task/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, description, dueDate } = req.body; // Ensure the body contains the fields you're updating
+  
+  const query = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      title,
+      description,
+      dueDate,
+    },
+  };
+
+  try {
+    const result = await tasksCollection.updateOne(query, updateDoc);
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: 'Task not found' });
+    }
+    res.send({ message: 'Task updated successfully', result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Failed to update task' });
+  }
+});
+
 
     console.log("Successfully connected to MongoDB!");
   } finally {
