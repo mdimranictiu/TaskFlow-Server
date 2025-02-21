@@ -23,7 +23,8 @@ async function run() {
 
     const userCollection = client.db("TaskFlow").collection("users");
     const tasksCollection = client.db("TaskFlow").collection("tasks");
-   
+    const activityLogCollection = client.db("TaskFlow").collection("activityLogs");
+
     app.get('/',(req,res)=>{
         res.send('Server is running')
     })
@@ -99,6 +100,17 @@ async function run() {
       const timestamp=  new Date().toISOString().split('T')[0];
       const newtaskData= {...taskData,timestamp}
       const result= await tasksCollection.insertOne(newtaskData);
+      const userEmail = req.decoded.email;
+
+    // Log the add task action using email
+    const log = {
+      userEmail: userEmail,
+      action: 'ADD',
+      taskId: result.insertedId,
+      timestamp: new Date(),
+      details: `Task added with title: ${taskData.title}`,
+    };
+    await activityLogCollection.insertOne(log);
       res.send(result)
     })
     
@@ -130,6 +142,19 @@ app.delete('/task/:id',verifyToken,async(req,res)=>{
   const {id}= req.params;
   const query = { _id: new ObjectId(id) };
   const result= await tasksCollection.deleteOne(query);
+  const userEmail = req.decoded.email;  // Get user email from decoded token
+
+    // Log the delete task action using email
+    const log = {
+      userEmail: userEmail,
+      action: 'DELETE',
+      taskId: new ObjectId(id),
+      timestamp: new Date(),
+      details: `Task with ID ${id} deleted.`,
+    };
+
+    // Insert log into activityLogs collection
+    await activityLogCollection.insertOne(log);
   res.send(result)
 })
 app.patch('/task/:id',verifyToken, async (req, res) => {
@@ -147,6 +172,17 @@ app.patch('/task/:id',verifyToken, async (req, res) => {
 
   try {
     const result = await tasksCollection.updateOne(query, updateDoc);
+    const userEmail = req.decoded.email;
+    const log = {
+      userEmail: userEmail,
+      action: 'UPDATE',
+      taskId: new ObjectId(id),
+      timestamp: new Date(),
+      details: `Task updated with title: ${title}`,
+    };
+
+    // Insert log into activityLogs collection
+    await activityLogCollection.insertOne(log);
     if (result.matchedCount === 0) {
       return res.status(404).send({ message: 'Task not found' });
     }
@@ -177,6 +213,20 @@ app.patch('/task/updateCat/:id', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: 'Failed to update task category' });
+  }
+});
+app.get('/logs', verifyToken, async (req, res) => {
+  const userEmail = req.decoded.email; // Get the email from the decoded JWT
+
+  try {
+    const logs = await activityLogCollection
+      .find({ userEmail: userEmail })  // Find logs for this user
+      .sort({ timestamp: -1 })         // Sort logs by timestamp (newest first)
+      .toArray();
+
+    res.send(logs);
+  } catch (error) {
+    res.status(500).send({ message: 'Failed to fetch logs', error });
   }
 });
 
