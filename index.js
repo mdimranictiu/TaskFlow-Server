@@ -42,7 +42,7 @@ async function run() {
         return res.status(401).send("Forbidden Access");
       }
       const token = req.headers.authorization.split(" ")[1];
-      jwt.verify(token, process.env.Access_Token_Secret, (err, decoded) => {
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
           return res.status(401).send("Forbidden Access");
         }
@@ -67,6 +67,31 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/user/email', verifyToken, async (req, res) => {
+      try {
+          // Extract email from query
+          const email = req.query.email;
+          if (!email) {
+              return res.status(400).send({ message: "Email query parameter is required" });
+          }
+  
+          // Query user by email
+          const userData = await userCollection.findOne({ email });
+  
+          // If user not found, return 404
+          if (!userData) {
+              return res.status(404).send({ message: "User not found" });
+          }
+  
+          // Send user data
+          res.send(userData);
+      } catch (error) {
+          console.error("Error fetching User Information:", error);
+          res.status(500).send({ message: "Internal Server Error" });
+      }
+  });
+  
+
     // add task
 
     app.post('/add-task',verifyToken, async(req,res)=>{
@@ -75,7 +100,6 @@ async function run() {
       const newtaskData= {...taskData,timestamp}
       const result= await tasksCollection.insertOne(newtaskData);
       res.send(result)
-      console.log(newtaskData)
     })
     
 // find task
@@ -95,21 +119,20 @@ app.get('/tasks', verifyToken, async (req, res) => {
 
 //find a task by id
 
-app.get('/task/:id',async(req,res)=>{
+app.get('/task/:id',verifyToken,async(req,res)=>{
   const {id}= req.params;
   const query = { _id: new ObjectId(id) };
   const result= await tasksCollection.findOne(query);
   res.send(result)
-  console.log(id)
 })
 //delete
-app.delete('/task/:id',async(req,res)=>{
+app.delete('/task/:id',verifyToken,async(req,res)=>{
   const {id}= req.params;
   const query = { _id: new ObjectId(id) };
   const result= await tasksCollection.deleteOne(query);
   res.send(result)
 })
-app.patch('/task/:id', async (req, res) => {
+app.patch('/task/:id',verifyToken, async (req, res) => {
   const { id } = req.params;
   const { title, description, dueDate } = req.body; // Ensure the body contains the fields you're updating
   
@@ -131,6 +154,29 @@ app.patch('/task/:id', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: 'Failed to update task' });
+  }
+});
+
+app.patch('/task/updateCat/:id', async (req, res) => {
+  const { id } = req.params;
+  const { category } = req.body; // Ensure the body contains the 'category' you're updating
+  
+  const query = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      category,  // Update the category field in the task
+    },
+  };
+
+  try {
+    const result = await tasksCollection.updateOne(query, updateDoc);
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: 'Task not found' });
+    }
+    res.send({ message: 'Task category updated successfully', result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: 'Failed to update task category' });
   }
 });
 
