@@ -116,9 +116,9 @@ async function run() {
     
 // find task
 
-app.get('/tasks', verifyToken, async (req, res) => {
+app.get('/tasks',  async (req, res) => {
   try {
-    const query = req.query;  // ✅ Get query params properly
+    const query = req.query;
     console.log("Query received:", query);
 
     const tasks = await tasksCollection.find(query).toArray();  
