@@ -77,7 +77,7 @@ npm install
 ```
 ### 4 Start the Development Server
 ```
-npm run dev
+node index.js
 ```
 
  ## Resources & Links
