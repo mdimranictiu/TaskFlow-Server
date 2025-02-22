@@ -47,7 +47,7 @@ The project uses the following npm packages:
   "axios": "^1.7.9",
   "framer-motion": "^12.4.7",
   "react": "^18.3.1",
-  "react-beautiful-dnd": "^13.1.1",
+   "@hello-pangea/dnd": "^18.0.1",
   "react-dom": "^18.3.1",
   "react-hook-form": "^7.54.2",
   "react-icons": "^5.5.0",
