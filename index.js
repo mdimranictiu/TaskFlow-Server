@@ -119,7 +119,7 @@ async function run() {
 app.get('/tasks',  async (req, res) => {
   try {
     const query = req.query;
-    console.log("Query received:", query);
+    //console.log("Query received:", query);
 
     const tasks = await tasksCollection.find(query).toArray();  
     res.send(tasks);
@@ -195,44 +195,35 @@ app.patch('/task/:id',verifyToken, async (req, res) => {
 
 app.patch('/task/update/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
-  const { category } = req.body;
-
-  // Validate input
-  if (!category) {
-    return res.status(400).send({ message: 'Category is required' });
-  }
-
+  const { category } = req.body;  // Ensure the body contains the 'category' you're updating
+  
   const query = { _id: new ObjectId(id) };
   const updateDoc = {
-    $set: { category },
+    $set: {
+      category,  // Update the category field in the task
+    },
   };
 
   try {
     const result = await tasksCollection.updateOne(query, updateDoc);
-
-    // If no matching document is found, return 404
-    if (result.matchedCount === 0) {
-      return res.status(404).send({ message: 'Task not found' });
-    }
-
-    // Log the action
-    const userEmail = req.decoded?.email; // Ensure req.decoded exists
+    const userEmail = req.decoded.email;
     const log = {
-      userEmail: userEmail || 'Unknown User',
+      userEmail: userEmail,
       action: 'UPDATE',
       taskId: new ObjectId(id),
       timestamp: new Date(),
-      details: `Task with Id:${id} moved to ${category} category`,
+      details: `Task with Id:${id} moved to ${category} category`, // Corrected log details
     };
-    await activityLogCollection.insertOne(log);
-
+    await activityLogCollection.insertOne(log);  // Log the activity
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: 'Task not found' });
+    }
     res.send({ message: 'Task category updated successfully', result });
   } catch (error) {
-    console.error('Error updating task:', error);
-    res.status(500).send({ message: 'Failed to update task category', error: error.message });
+    console.error(error);
+    res.status(500).send({ message: 'Failed to update task category' });
   }
 });
-
 
 app.get('/logs', verifyToken, async (req, res) => {
   const userEmail = req.decoded.email; // Get the email from the decoded JWT
