@@ -12,7 +12,7 @@ All changes are instantly saved to a MongoDB database, maintaining real-time syn
 Built with a clean, minimalistic UI, TaskFlow provides a seamless and distraction-free experience across both desktop and mobile devices. Whether you're managing personal tasks or team projects, TaskFlow simplifies the process, keeping you focused and organized. 🚀
 
  ## 🖼 Screenshot  
-![TaskFlow](src/assets/taskflowImg.jpeg)
+![TaskFlow](https://i.ibb.co.com/4050nD7/taskflow-Img.jpg)
 
 ## 📖 Table of Contents
 
