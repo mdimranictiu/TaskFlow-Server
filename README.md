@@ -24,8 +24,7 @@ Built with a clean, minimalistic UI, TaskFlow provides a seamless and distractio
 
 ## 🚀Features  
 
-- **Task Management**: Easily add, edit, delete, and reorder tasks using a user-friendly interface. 
-- **Community Interaction**: Submit your products, upvote, and post reviews to engage with fellow tech enthusiasts.  
+- **Task Management**: Easily add, edit, delete, and reorder tasks using a user-friendly interface.   
 - **Drag-and-Drop Functionality**: Seamlessly rearrange tasks across To-Do, In Progress, and Done categories for better workflow organization.  
 - **Real-Time Updates:**: Instantly sync task changes with the MongoDB database to ensure persistence and data consistency.
 - **Authentication & Security**: Implement user authentication and authorization for secure access and personalized experiences.  
